@@ -1,0 +1,15 @@
+platform="linux"
+
+files="src/main.c src/user/buffers.c src/user/input.c src/user/instanced_positions.c"
+include="-I3D-Graphics/include -I3D-Graphics/external/include -Iinclude"
+
+if [ "$platform" = "windows" ]; then
+compiler="x86_64-w64-mingw32-gcc"
+$compiler 3D-Graphics/external/lib/glad.c $files $include -L3D-Graphics/external/lib/WIN/ -L3D-Graphics/build -L3D-Graphics/external -lt -Iinclude/ -lm -lglfw3 -lgdi32 -o build/main
+fi
+
+if [ "$platform" = "linux" ]; then
+compiler="gcc"
+$compiler 3D-Graphics/external/lib/glad.c $files $include -L3D-Graphics/external/lib/LINUX/  -L3D-Graphics/build -L3D-Graphics/external -lt -Iinclude/ -lm -lglfw3 -lGL -o build/main
+fi
+

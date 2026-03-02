@@ -1,0 +1,10 @@
+platform="linux"
+
+if [ "$platform" = "windows" ]; then
+wine build/main.exe
+fi
+
+if [ "$platform" = "linux" ]; then
+./build/main
+fi
+
