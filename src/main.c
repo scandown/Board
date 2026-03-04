@@ -47,6 +47,7 @@ int main() {
 		255, 0, 0, 1,
 		0, 0, 255, 1
 	};
+
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 2, 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 	glGenerateMipmap(GL_TEXTURE_2D);
 
@@ -69,8 +70,6 @@ int main() {
 
 		spr.plane.texture = fb_texture;
 		glBindTexture(GL_TEXTURE_2D, spr.plane.texture);
-
-		
 		
 		int is_atlas_b = 0;
 		Uniform is_atlas = uniform_set_data(&is_atlas_b, UNIFORM_INT1);

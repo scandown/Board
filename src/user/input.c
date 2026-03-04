@@ -41,4 +41,8 @@ void key_input(GLFWwindow *window, Camera *cam, float speed) {
 	if (glfwGetKey(window, GLFW_KEY_SPACE)) {
 		cam->pos[1] += cameraSpeed;
 	}
+
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT)) {
+		cam->pos[1] += cameraSpeed;
+	}
 }
