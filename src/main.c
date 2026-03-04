@@ -12,7 +12,7 @@ int main() {
 	Camera *cam = malloc(sizeof(Camera));
 	camera_init(cam, (vec3){0, 0, 1}, 0, 270);
 
-	State game = state_init(error, 640, 480, "game");
+	State game = state_init(error, 1920, 1080, "game");
 	unsigned int program = program_init(error, "src/user/vertex_in.glsl", "src/user/textured.glsl");
 
 
@@ -23,7 +23,7 @@ int main() {
 	vec2 instanced_spr_num[num_inst] = {
 		{0, 0}, {0, 0}, {0, 0}
 	};
-	Sprite spr = sprite_init(error, (vec3){100, 100, 0}, 1, "assets/smiley.png", 16, 16);
+	Sprite spr = sprite_init(error, (vec3){0, 0, 0}, 1, "assets/smiley.png", 16, 16);
 	buffers_init(&spr.plane);
 	instanced_buffers_init(&spr.plane, instanced_positions, instanced_spr_num, num_inst, true);
 
@@ -52,6 +52,7 @@ int main() {
 	glGenerateMipmap(GL_TEXTURE_2D);
 
 	double lastFrame = glfwGetTime();
+	float pos[2];
 	while (!glfwWindowShouldClose(game.window)) {
 		double currentFrame = glfwGetTime();
 		float dt = (float)(currentFrame - lastFrame);
@@ -65,19 +66,29 @@ int main() {
 
 		if (glfwGetMouseButton(game.window, GLFW_MOUSE_BUTTON_LEFT)) {
 			glBindBuffer(GL_ARRAY_BUFFER, spr.plane.instance_UV_VBO);
-			float pos[2];
 
 			double posx, posy;
 			glfwGetCursorPos(game.window, &posx, &posy);
 
 			pos[0] = posx;
-			pos[1] = -posy;
+			pos[1] = posy;
+
+			pos[0] = 0;
+			pos[1] = 0;
 			glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * 2, pos);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+		}
+		if (glfwGetMouseButton(game.window, GLFW_MOUSE_BUTTON_RIGHT)) {
+			glBindBuffer(GL_ARRAY_BUFFER, spr.plane.instance_UV_VBO);
+			pos[1]+=1;
+			printf("%f: %f\n", pos[0], pos[1]);
+			glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * 2, pos);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
 		}
 
 
 		glUseProgram(program);
-		matrix_init(&game, program, "2D");
+		matrix_init(&game, program, "2D", 1920, 1080);
 		camera_rotate(cam, cam->yaw, cam->pitch, game.view_uniform.value.m4);
 		uniform_send_to_gpu(&game.view_uniform, program, "view");
 
