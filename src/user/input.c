@@ -25,7 +25,6 @@ void key_input(GLFWwindow *window, Camera *cam, float speed) {
 	}
 	if (glfwGetKey(window, GLFW_KEY_S)) {
 		glm_vec3_copy(cam->up, up_temp);
-		//up_temp[1] = 0;
 
 		glm_vec3_scale(up_temp, cameraSpeed, cameraUp);
 
@@ -42,7 +41,4 @@ void key_input(GLFWwindow *window, Camera *cam, float speed) {
 		cam->pos[1] += cameraSpeed;
 	}
 
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT)) {
-		cam->pos[1] += cameraSpeed;
-	}
 }

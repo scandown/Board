@@ -63,6 +63,19 @@ int main() {
 		float speed = 50 * dt;
 		key_input(game.window, cam, speed);
 
+		if (glfwGetMouseButton(game.window, GLFW_MOUSE_BUTTON_LEFT)) {
+			glBindBuffer(GL_ARRAY_BUFFER, spr.plane.instance_UV_VBO);
+			float pos[2];
+
+			double posx, posy;
+			glfwGetCursorPos(game.window, &posx, &posy);
+
+			pos[0] = posx;
+			pos[1] = -posy;
+			glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * 2, pos);
+		}
+
+
 		glUseProgram(program);
 		matrix_init(&game, program, "2D");
 		camera_rotate(cam, cam->yaw, cam->pitch, game.view_uniform.value.m4);
