@@ -2,6 +2,9 @@
 #define num_inst 3
 #define RES 16
 
+#define SCR_WIDTH 640
+#define SCR_HEIGHT 360
+
 int main() {
 	jmp_buf error;
 	if (setjmp(error)) {
@@ -12,7 +15,7 @@ int main() {
 	Camera *cam = malloc(sizeof(Camera));
 	camera_init(cam, (vec3){0, 0, 1}, 0, 270);
 
-	State game = state_init(error, 1920, 1080, "game");
+	State game = state_init(error, SCR_WIDTH, SCR_HEIGHT, "game");
 	unsigned int program = program_init(error, "src/user/vertex_in.glsl", "src/user/textured.glsl");
 
 
@@ -65,6 +68,10 @@ int main() {
 		key_input(game.window, cam, speed);
 
 		if (glfwGetMouseButton(game.window, GLFW_MOUSE_BUTTON_LEFT)) {
+			int width, height;
+			glfwGetWindowSize(game.window, &width, &height);
+			//printf("%d | %d\n", width, height);
+
 			glBindBuffer(GL_ARRAY_BUFFER, spr.plane.instance_UV_VBO);
 
 			double posx, posy;
@@ -73,22 +80,25 @@ int main() {
 			pos[0] = posx;
 			pos[1] = posy;
 
-			pos[0] = 0;
-			pos[1] = 0;
+			pos[0] /= width;
+			pos[1] /= height;
+
+			pos[0] *= SCR_WIDTH;
+			pos[1] *= SCR_HEIGHT;
+
+			pos[1] *= -1;
+			pos[1] += SCR_HEIGHT;
+
 			glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * 2, pos);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
-		}
-		if (glfwGetMouseButton(game.window, GLFW_MOUSE_BUTTON_RIGHT)) {
-			glBindBuffer(GL_ARRAY_BUFFER, spr.plane.instance_UV_VBO);
-			pos[1]+=1;
-			printf("%f: %f\n", pos[0], pos[1]);
-			glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * 2, pos);
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+			printf("%d\n", (int)pos[1]);
+
 		}
 
 
 		glUseProgram(program);
-		matrix_init(&game, program, "2D", 1920, 1080);
+		matrix_init(&game, program, "2D", SCR_WIDTH, SCR_HEIGHT);
 		camera_rotate(cam, cam->yaw, cam->pitch, game.view_uniform.value.m4);
 		uniform_send_to_gpu(&game.view_uniform, program, "view");
 
