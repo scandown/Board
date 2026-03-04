@@ -1,5 +1,6 @@
 #include "engine_custom.h"
 #define num_inst 3
+#define RES 16
 
 int main() {
 	jmp_buf error;
@@ -22,10 +23,15 @@ int main() {
 	vec2 instanced_spr_num[num_inst] = {
 		{0, 0}, {0, 0}, {0, 0}
 	};
-	Sprite spr = sprite_init(error, (vec3){100, 100, 0}, 1, "assets/smiley.png", instanced_positions, instanced_spr_num, num_inst, 16, 16);
+	Sprite spr = sprite_init(error, (vec3){100, 100, 0}, 1, "assets/smiley.png", 16, 16);
+	buffers_init(&spr.plane);
+	instanced_buffers_init(&spr.plane, instanced_positions, instanced_spr_num, num_inst, true);
+
 	//generate_buffers(&spr);
 	
-	Sprite machine = sprite_init(error, (vec3){100, 100 - 16, 0}, 48, "assets/smiley.png", instanced_positions, instanced_spr_num, 1, 1, 2.1);
+	Sprite machine = sprite_init(error, (vec3){100, 100 - 16, 0}, 48, "assets/smiley.png", 1, 2.1);
+	buffers_init(&machine.plane);
+	//instanced_buffers_init(&machine.plane, instanced_positions, instanced_spr_num, num_inst, true);
 	machine.plane.uniform.value.m4[2][2] = 0;
 
 	unsigned int fb_texture;
@@ -41,14 +47,20 @@ int main() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 
-#define RES 16
-	unsigned char data[4 * RES * RES] = {0};
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, RES, RES, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	unsigned char data[4 * 2 * 2] = {
+		0, 255, 0, 1,
+		0, 0, 255, 1,
+		255, 0, 0, 1,
+		0, 0, 255, 1
+	};
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 2, 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 	glGenerateMipmap(GL_TEXTURE_2D);
 
 	vec2 tt[3] = {{0, 0}, {32, 0}, {64, 0}};
 	vec2 ii[3] = {{0, 0}, {0, 0}, {0, 0}};
-	Sprite spr2 = sprite_init(error, (vec3){100, 0, 0}, 1, "assets/smiley.png", tt, ii, 3, RES, RES);
+	Sprite spr2 = sprite_init(error, (vec3){100, 0, 0}, 1, "assets/smiley.png", RES, RES);
+	buffers_init(&spr2.plane);
+	instanced_buffers_init(&spr2.plane, instanced_positions, instanced_spr_num, 3, true);
 	spr2.plane.texture = fb_texture;
 
 	double lastFrame = glfwGetTime();
@@ -68,9 +80,16 @@ int main() {
 		camera_rotate(cam, cam->yaw, cam->pitch, game.view_uniform.value.m4);
 		uniform_send_to_gpu(&game.view_uniform, program, "view");
 
+		spr.plane.texture = fb_texture;
 		glBindTexture(GL_TEXTURE_2D, spr.plane.texture);
 
-		sprite_draw(&spr, program, num_inst);
+		
+		
+		int is_atlas_b = 0;
+		Uniform is_atlas = uniform_set_data(&is_atlas_b, UNIFORM_INT1);
+		uniform_send_to_gpu(&is_atlas, program, "is_atlas");
+
+		sprite_draw(&spr, program, 1);
 
 		glfwSwapBuffers(game.window);
 

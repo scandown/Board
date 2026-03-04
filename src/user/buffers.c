@@ -1,6 +1,6 @@
 #include "user/buffers.h"
 
-void buffers_init(Model *model, Instance *instance, int translation_size) {
+void buffers_init(Model *model) {
 	glGenVertexArrays(1, &model->VAO);
 	glGenBuffers(1, &model->VBO);
 	glGenBuffers(1, &model->EBO);
@@ -16,8 +16,6 @@ void buffers_init(Model *model, Instance *instance, int translation_size) {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model->EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, model->vertex_face_size * sizeof(unsigned int), model->vertex_faces, GL_STATIC_DRAW);
 
-
-
 	glBindBuffer(GL_ARRAY_BUFFER, model->VBO);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
 	glEnableVertexAttribArray(0);
@@ -26,14 +24,16 @@ void buffers_init(Model *model, Instance *instance, int translation_size) {
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(5 * sizeof(float)));
 	glEnableVertexAttribArray(2);
 
+}
 
-	if (instance->is_instanced) {
-		glBindBuffer(GL_ARRAY_BUFFER, model->instance_UV_VBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vec2) * translation_size, instance->instance_array, GL_STATIC_DRAW);
+void instanced_buffers_init(Model *model, vec2 *instance_array, vec2 *spr_num, int translation_size, bool setup) {
+	glBindBuffer(GL_ARRAY_BUFFER, model->instance_UV_VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vec2) * translation_size, instance_array, GL_STATIC_DRAW);
 
-		glBindBuffer(GL_ARRAY_BUFFER, model->instance_spr_VBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vec2) * translation_size, instance->spr_num, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, model->instance_spr_VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vec2) * translation_size, spr_num, GL_STATIC_DRAW);
 
+	if (setup) {
 		glBindBuffer(GL_ARRAY_BUFFER, model->instance_UV_VBO);
 		glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)(0));
 		glVertexAttribDivisor(3, 1);
@@ -44,7 +44,6 @@ void buffers_init(Model *model, Instance *instance, int translation_size) {
 		glVertexAttribDivisor(4, 1);
 		glEnableVertexAttribArray(4);
 	}
-
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
@@ -73,18 +72,12 @@ void model_draw(Model *model, unsigned int program, unsigned int instance_amount
 	glDrawElementsInstanced(GL_TRIANGLES, model->vertex_face_size, GL_UNSIGNED_INT, 0, instance_amount);
 }
 
-void model_init(jmp_buf error, Model *model, vec3 pos, char *texture_location, Instance *instance, int instance_amount) {
+void model_init(jmp_buf error, Model *model, vec3 pos, char *texture_location) {
 
 	unsigned int texture = texture_init(error, GL_RGBA, texture_location);
 
 	mat4 model_matrix;
 	glm_mat4_identity(model_matrix);
-
-	if (instance->is_instanced) {
-		buffers_init(model, instance, instance_amount);
-	} else {
-		buffers_init(model, instance, 0);
-	}
 
 	model->uniform = uniform_set_data(model_matrix, UNIFORM_MAT4);
 	model->x = pos[0];
